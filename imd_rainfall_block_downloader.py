@@ -135,7 +135,11 @@ def extract_text(pdf_path: Path) -> str:
 # Step 3: parse the extracted text into rows
 # --------------------------------------------------------------------------
 def parse_rows(raw_text: str) -> list:
-    lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
+    # Normalize whitespace: pdfplumber can emit tabs, non-breaking spaces,
+    # or runs of multiple spaces depending on the PDF's internal layout.
+    normalized = raw_text.replace("\xa0", " ").replace("\t", " ")
+    normalized = re.sub(r"[ ]{2,}", " ", normalized)
+    lines = [l.strip() for l in normalized.splitlines() if l.strip()]
 
     rows = []
     current_region = ""
@@ -160,6 +164,12 @@ def parse_rows(raw_text: str) -> list:
         unmatched.append(line)
 
     if not rows:
+        debug_path = OUTPUT_DIR / "debug_last_failed_extract.txt"
+        debug_path.write_text(raw_text)
+        log.error(f"Zero rows parsed. Raw extracted text saved to {debug_path} for inspection.")
+        log.error("First 40 lines of extracted text (for debugging):")
+        for l in lines[:40]:
+            log.error(f"  RAW> {l!r}")
         raise ValueError("Parsed zero rows - PDF layout may have changed")
 
     if unmatched:
