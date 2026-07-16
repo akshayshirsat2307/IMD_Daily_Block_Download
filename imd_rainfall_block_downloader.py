@@ -85,12 +85,23 @@ log = logging.getLogger("imd_rainfall")
 # --------------------------------------------------------------------------
 # Regex patterns for the two row shapes in the PDF table
 # --------------------------------------------------------------------------
+NUM = r"-?\d+(?:\.\d+)?"   # e.g. 348, 10.7, -45.2
+DEP = r"-?\d+(?:\.\d+)?"   # departure figure, no % sign in current PDF format
+
+# Subdivision row, e.g.:
+#   "1 ARUNACHAL PRADESH 10.7 17.8 -40 D 356.4 727 -51 D"
 SUB_PATTERN = re.compile(
-    r"^(\d+)\s+(.+?)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+)%\s+(\w+)\s+"
-    r"(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+)%\s+(\w+)$"
+    rf"^(\d+)\s+(.+?)\s+({NUM})\s+({NUM})\s+({DEP})\s+(\w+)\s+"
+    rf"({NUM})\s+({NUM})\s+({DEP})\s+(\w+)$"
 )
-REGION_PATTERN = re.compile(
-    r"^([A-Z][A-Z&.\s]+?)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)$"
+
+# Region summary row, e.g.:
+#   "REGION : EAST AND NORTH EAST INDIA 7.9 14.2 -45 D 348 540.2 -36 D"
+# Country summary row, e.g.:
+#   "COUNTRY AS A WHOLE 1.8 1.9 -12 D 93.5 88.3 5 E"
+TOTAL_PATTERN = re.compile(
+    rf"^(?:REGION\s*:\s*(.+?)|(COUNTRY AS A WHOLE))\s+({NUM})\s+({NUM})\s+({DEP})\s+(\w+)\s+"
+    rf"({NUM})\s+({NUM})\s+({DEP})\s+(\w+)$"
 )
 
 CSV_HEADER = [
@@ -153,12 +164,17 @@ def parse_rows(raw_text: str) -> list:
                          p_act, p_norm, p_dep, p_cat])
             continue
 
-        m2 = REGION_PATTERN.match(line)
+        m2 = TOTAL_PATTERN.match(line)
         if m2:
-            name, d_act, d_norm, p_act, p_norm = m2.groups()
-            current_region = name.strip()
-            rows.append([current_region, "", "(Region/Country Total)", d_act, d_norm, "", "",
-                         p_act, p_norm, "", ""])
+            region_name, country_name, d_act, d_norm, d_dep, d_cat, p_act, p_norm, p_dep, p_cat = m2.groups()
+            if country_name:
+                current_region = "COUNTRY AS A WHOLE"
+                label = "(Country Total)"
+            else:
+                current_region = region_name.strip()
+                label = "(Region Total)"
+            rows.append([current_region, "", label, d_act, d_norm, d_dep, d_cat,
+                         p_act, p_norm, p_dep, p_cat])
             continue
 
         unmatched.append(line)
