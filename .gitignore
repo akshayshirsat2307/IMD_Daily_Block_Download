@@ -1,0 +1,14 @@
+# Raw PDFs are re-downloadable; no need to version them
+raw_pdfs/*.pdf
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS junk
+.DS_Store
