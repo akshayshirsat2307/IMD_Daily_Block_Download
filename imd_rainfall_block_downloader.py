@@ -213,8 +213,8 @@ def run_pipeline() -> Path:
     csv_path = OUTPUT_DIR / f"IMD_Subdivision_Rainfall_{today}.csv"
     latest_path = OUTPUT_DIR / "latest.csv"
 
-    if csv_path.exists():
-        log.info(f"{csv_path.name} already exists for today - skipping re-download.")
+    if csv_path.exists() and pdf_path.exists():
+        log.info(f"{csv_path.name} and {pdf_path.name} already exist for today - skipping re-download.")
         return csv_path
 
     download_pdf(PDF_URL, pdf_path)
