@@ -1,0 +1,40 @@
+name: Daily IMD Rainfall Block Download
+
+on:
+  schedule:
+    # Runs are staggered through the day. The script skips work if today's
+    # CSV already exists, so later runs act as free automatic retries if
+    # an earlier run failed (network issue, IMD site down, runner hiccup).
+    - cron: "30 3 * * *"   # ~09:00 IST
+    - cron: "30 6 * * *"   # ~12:00 IST (retry)
+    - cron: "30 9 * * *"   # ~15:00 IST (retry)
+  workflow_dispatch: {}     # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run downloader (has its own internal retry/backoff)
+        run: python imd_rainfall_block_downloader.py --once
+
+      - name: Commit new CSV if produced
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/*.csv
+          git diff --staged --quiet || git commit -m "Add rainfall data for $(date +'%Y-%m-%d')"
+          git push
