@@ -209,8 +209,10 @@ def write_csv(rows: list, dest: Path) -> None:
 # --------------------------------------------------------------------------
 def run_pipeline() -> Path:
     today = datetime.now().strftime("%Y-%m-%d")
-    pdf_path = OUTPUT_DIR / f"IMD_Subdivision_Rainfall_{today}.pdf"
-    csv_path = OUTPUT_DIR / f"IMD_Subdivision_Rainfall_{today}.csv"
+    # Previous date
+    previous_date = (datetime.now() - timedelta(days=1)).strftime("%d%m%Y")
+    pdf_path = OUTPUT_DIR / f"IMD_Subdivision_Rainfall_{previous_date}.pdf"
+    csv_path = OUTPUT_DIR / f"IMD_Subdivision_Rainfall_{previous_date}.csv"
     latest_path = OUTPUT_DIR / "latest.csv"
 
     if csv_path.exists() and pdf_path.exists():
