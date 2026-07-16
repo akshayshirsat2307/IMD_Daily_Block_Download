@@ -1,4 +1,4 @@
-name: Daily IMD Rainfall Block Download
+name: Daily IMD Rainfall Download
 
 on:
   schedule:
@@ -29,12 +29,16 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run downloader (has its own internal retry/backoff)
-        run: python imd_rainfall_block_downloader.py --once
+        run: python imd_rainfall_downloader.py --once
 
-      - name: Commit new CSV if produced
+      - name: Debug - list output directory
+        run: ls -la output/
+
+      - name: Commit new CSV and PDF if produced
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add output/*.csv
+          git add -f output/*.csv output/*.pdf
+          git status
           git diff --staged --quiet || git commit -m "Add rainfall data for $(date +'%Y-%m-%d')"
           git push
