@@ -1,4 +1,4 @@
-name: Daily IMD Rainfall Download
+name: Daily IMD Rainfall Block Download
 
 on:
   schedule:
@@ -29,7 +29,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run downloader (has its own internal retry/backoff)
-        run: python imd_rainfall_downloader.py --once
+        run: python imd_rainfall_block_downloader.py --once
 
       - name: Debug - list output directory
         run: ls -la output/
