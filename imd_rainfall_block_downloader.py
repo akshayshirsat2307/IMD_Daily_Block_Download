@@ -58,7 +58,6 @@ PDF_URL = "https://mausam.imd.gov.in/Rainfall/SUBDIVISION_RAINFALL_DISTRIBUTION_
 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output"
-RAW_DIR = BASE_DIR / "raw_pdfs"
 LOG_FILE = BASE_DIR / "imd_rainfall.log"
 
 MAX_ATTEMPTS = 6          # how many times to retry the whole pipeline in one run
@@ -67,7 +66,6 @@ MAX_BACKOFF_SEC = 30 * 60 # cap the backoff at 30 minutes
 REQUEST_TIMEOUT = 30      # seconds per HTTP request
 
 OUTPUT_DIR.mkdir(exist_ok=True)
-RAW_DIR.mkdir(exist_ok=True)
 
 # --------------------------------------------------------------------------
 # Logging
@@ -211,7 +209,7 @@ def write_csv(rows: list, dest: Path) -> None:
 # --------------------------------------------------------------------------
 def run_pipeline() -> Path:
     today = datetime.now().strftime("%Y-%m-%d")
-    pdf_path = RAW_DIR / f"rainfall_{today}.pdf"
+    pdf_path = OUTPUT_DIR / f"IMD_Subdivision_Rainfall_{today}.pdf"
     csv_path = OUTPUT_DIR / f"IMD_Subdivision_Rainfall_{today}.csv"
     latest_path = OUTPUT_DIR / "latest.csv"
 
